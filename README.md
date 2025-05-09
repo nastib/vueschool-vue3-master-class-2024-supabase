@@ -37,3 +37,9 @@ npm run build
 ```sh
 npm run lint
 ```
+
+```bash
+pg-to-ts generate \
+  -c postgresql://postgres:YOUR_DB_PASSWORD@supabase.digitlab.app:5432/postgres \
+  -o src/types/database.types.ts
+```

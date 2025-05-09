@@ -1,96 +1,47 @@
-<script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-
-</script>
-
 <template>
-  <header>
-    <img
-      alt="Vue logo"
-      class="logo"
-      src="@/assets/logo.svg"
-      width="125"
-      height="125"
+  <DefaultLayout>
+    <AppErrorPage v-if="errorStore.activeError" />
+    <RouterView
+      v-else
+      v-slot="{ Component, route }"
     >
+      <Suspense
+        v-if="Component"
+        :timeout="0"
+      >
+        <Component
+          :is="Component"
+          :key="route.name"
+        />
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">
-          Home
-        </RouterLink>
-        <RouterLink to="/about">
-          About
-        </RouterLink>
-      </nav>
-    </div>
-  </header>
-
-  <RouterView />
+        <template #fallback>
+          <div class="flex justify-center items-center">
+            <Loader2 class="w-6 h-6 mr-2 animate-spin" />
+            <span class="text-[12px]">Loading ...</span>
+          </div>
+        </template>
+      </Suspense>
+    </RouterView>
+  </DefaultLayout>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
+<script setup lang="ts">
+import DefaultLayout from './layouts/default.vue'
+import { Loader2 } from 'lucide-vue-next'
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
+const errorStore = useErrorStore()
+const authStore = useAuthStore()
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
+onErrorCaptured((error) => {
+  errorStore.setError({
+    message: error.message,
+    customCode: 500,
+    detail: error.stack
+  })
+  return true
+})
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-}
-</style>
+onMounted(() => {
+    authStore.trackAuthChanges()
+})
+</script>
